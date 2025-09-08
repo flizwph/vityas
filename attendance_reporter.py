@@ -19,6 +19,7 @@ from config import (
     T_FIELD,
     EMPLOYEE_ID_EVENT_FIELD,
     CARD_ID_FIELD,
+    DEPARTMENT_ID_FIELD,
     DEPARTMENT_NAME_FIELD,
     NAME_LAST_FIELD,
     NAME_FIRST_FIELD,
@@ -77,6 +78,7 @@ class AttendanceReporter:
                 DATEADD(MILLISECOND, e.{T_FIELD}, CAST(DATE '1858-11-17' + (e.{D_FIELD} - 678576) AS TIMESTAMP)) AS pass_ts,
                 e.{EMPLOYEE_ID_EVENT_FIELD} AS employee_id,
                 e.{CARD_ID_FIELD} AS card_id,
+                e.{DEPARTMENT_ID_FIELD} AS department_id,
                 TRIM(e.{DEPARTMENT_NAME_FIELD}) AS department_name,
                 TRIM(e.{NAME_LAST_FIELD}) AS last_name,
                 TRIM(e.{NAME_FIRST_FIELD}) AS first_name,
@@ -86,12 +88,12 @@ class AttendanceReporter:
                 e.{EVENT_CODE_FIELD} AS event_code,
                 e.{STATUS_FIELD} AS status_code
             FROM {ATTENDANCE_TABLE} e
-            WHERE TRIM(e.{DEPARTMENT_NAME_FIELD}) = ?
+            WHERE e.{DEPARTMENT_ID_FIELD} = ?
               AND DATE(DATE '1858-11-17' + (e.{D_FIELD} - 678576)) BETWEEN ? AND ?
-            ORDER BY pass_ts
+            ORDER BY e.{D_FIELD}, e.{T_FIELD}, e.ID
             """
 
-            df = pd.read_sql_query(query, conn, params=[department, start_date, end_date])
+            df = pd.read_sql_query(query, conn, params=[int(department), start_date, end_date])
             conn.close()
             return df
             
